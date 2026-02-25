@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<link rel="manifest" href="manifest.json">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Метизи">
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('SW зареєстровано!'))
+        .catch(err => console.log('Помилка SW:', err));
+    });
+  }
+</script>    
+<meta charset="UTF-8">
+    <title>Професійний калькулятор металовиробів</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; padding: 30px; }
+        .container { max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin: auto; }
+        h2 { color: #1a73e8; text-align: center; margin-top: 0; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: #444; }
+        select, input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; }
+        .result-box { margin-top: 25px; padding: 20px; background: #e8f0fe; border-radius: 8px; text-align: center; }
+        .result-val { font-size: 24px; font-weight: bold; color: #1a73e8; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Калькулятор кріплення</h2>
+    
+    <div class="form-group">
+        <label>Тип виробу:</label>
+        <select id="mainType" onchange="toggleInputs()">
+            <option value="bolt">Болт (з шестигранною головкою)</option>
+            <option value="nut">Гайка</option>
+            <option value="washer">Шайба (плоска)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Діаметр (М):</label>
+        <select id="diameter" onchange="calculate()">
+            <option value="8">М8</option>
+            <option value="10">М10</option>
+            <option value="12">М12</option>
+            <option value="14">М14</option>
+            <option value="16">М16</option>
+            <option value="18">М18</option>
+            <option value="20">М20</option>
+        </select>
+    </div>
+
+    <div class="form-group" id="lengthGroup">
+        <label>Довжина (мм):</label>
+        <select id="length" onchange="calculate()">
+            <option value="60">60</option>
+            <option value="80">80</option>
+            <option value="100">100</option>
+            <option value="110">110</option>
+            <option value="120">120</option>
+            <option value="140">140</option>
+            <option value="160">160</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Кількість (шт):</label>
+        <input type="number" id="quantity" value="100" min="1" oninput="calculate()">
+    </div>
+
+    <div class="result-box">
+        <div>Загальна вага замовлення:</div>
+        <div class="result-val"><span id="totalWeight">0</span> кг</div>
+    </div>
+</div>
+
+<script>
+    // База ваги (в кг за 1 штуку)
+    // Примітки: болти рахуються приблизно за формулою (вага тіла + вага головки)
+    const data = {
+        nut: { 8: 0.0052, 10: 0.0116, 12: 0.0173, 14: 0.025, 16: 0.033, 18: 0.049, 20: 0.064 },
+        washer: { 8: 0.0021, 10: 0.0041, 12: 0.0063, 14: 0.0086, 16: 0.0113, 18: 0.0147, 20: 0.0172 },
+        boltBase: { // Вага 1 мм стрижня + вага головки
+            8:  { head: 0.005, mm: 0.00039 },
+            10: { head: 0.010, mm: 0.00062 },
+            12: { head: 0.015, mm: 0.00089 },
+            14: { head: 0.022, mm: 0.00121 },
+            16: { head: 0.030, mm: 0.00158 },
+            18: { head: 0.042, mm: 0.00200 },
+            20: { head: 0.055, mm: 0.00247 }
+        }
+    };
+
+    function toggleInputs() {
+        const type = document.getElementById('mainType').value;
+        const lengthGroup = document.getElementById('lengthGroup');
+        
+        // Показуємо довжину тільки для болтів
+        if (type === 'bolt') {
+            lengthGroup.classList.remove('hidden');
+        } else {
+            lengthGroup.classList.add('hidden');
+        }
+        calculate();
+    }
+
+    function calculate() {
+        const type = document.getElementById('mainType').value;
+        const d = document.getElementById('diameter').value;
+        const qty = document.getElementById('quantity').value || 0;
+        let unitWeight = 0;
+
+        if (type === 'bolt') {
+            const L = document.getElementById('length').value;
+            const params = data.boltBase[d];
+            unitWeight = params.head + (params.mm * L);
+        } else {
+            unitWeight = data[type][d];
+        }
+
+        const total = unitWeight * qty;
+        document.getElementById('totalWeight').innerText = total.toFixed(3);
+    }
+
+    // Ініціалізація
+    toggleInputs();
+</script>
+
+</body>
+</html>
