@@ -1,4 +1,4 @@
-const CACHE_NAME = 'calc-v1';
+const CACHE_NAME = 'calc-v2';
 const assets = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', event => {
