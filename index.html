@@ -1,33 +1,108 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <title>Калькулятор Метизів</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Метизи">
 
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Метизи">
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('SW зареєстровано!'))
+            .catch(err => console.log('Помилка SW:', err));
+        });
+      }
+    </script> 
 
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('SW зареєстровано!'))
-        .catch(err => console.log('Помилка SW:', err));
-    });
-  }
-</script>    
-<meta charset="UTF-8">
-    <title>Професійний калькулятор металовиробів</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; padding: 30px; }
-        .container { max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin: auto; }
-        h2 { color: #1a73e8; text-align: center; margin-top: 0; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: 600; color: #444; }
-        select, input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; }
-        .result-box { margin-top: 25px; padding: 20px; background: #e8f0fe; border-radius: 8px; text-align: center; }
-        .result-val { font-size: 24px; font-weight: bold; color: #1a73e8; }
+        /* Сучасний мобільний інтерфейс */
+        body { 
+            font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background-color: #f4f7f9; 
+            padding: 15px; 
+            margin: 0;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .container { 
+            width: 100%;
+            max-width: 450px; 
+            background: white; 
+            padding: 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 8px 30px rgba(0,0,0,0.05); 
+            box-sizing: border-box;
+        }
+        
+        h2 { 
+            color: #1a73e8; 
+            text-align: center; 
+            margin-top: 0; 
+            font-size: 1.4rem;
+        }
+        
+        .form-group { margin-bottom: 18px; }
+        
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 600; 
+            color: #444; 
+            font-size: 0.95rem;
+        }
+        
+        /* Великі елементи керування для пальців */
+        select, input { 
+            width: 100%; 
+            padding: 15px; 
+            border: 2px solid #edf2f7; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            background-color: #f8fafc;
+            color: #333;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+            -webkit-appearance: none; /* Прибирає стандартний стиль iOS */
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: #1a73e8;
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1);
+        }
+        
+        /* Блок з результатом */
+        .result-box { 
+            margin-top: 25px; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%); 
+            color: white;
+            border-radius: 16px; 
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(26, 115, 232, 0.3);
+        }
+        
+        .result-label { font-size: 0.9rem; opacity: 0.9; margin-bottom: 5px; }
+        .result-val { font-size: 2.2rem; font-weight: bold; }
+        
         .hidden { display: none; }
+
+        /* Стилізація випадаючих списків для iOS */
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23a0aec0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 18px;
+        }
     </style>
 </head>
 <body>
@@ -38,7 +113,7 @@
     <div class="form-group">
         <label>Тип виробу:</label>
         <select id="mainType" onchange="toggleInputs()">
-            <option value="bolt">Болт (з шестигранною головкою)</option>
+            <option value="bolt">Болт (шестигранний)</option>
             <option value="nut">Гайка</option>
             <option value="washer">Шайба (плоска)</option>
         </select>
@@ -60,13 +135,13 @@
     <div class="form-group" id="lengthGroup">
         <label>Довжина (мм):</label>
         <select id="length" onchange="calculate()">
-            <option value="60">60</option>
-            <option value="80">80</option>
-            <option value="100">100</option>
-            <option value="110">110</option>
-            <option value="120">120</option>
-            <option value="140">140</option>
-            <option value="160">160</option>
+            <option value="60">60 мм</option>
+            <option value="80">80 мм</option>
+            <option value="100">100 мм</option>
+            <option value="110">110 мм</option>
+            <option value="120">120 мм</option>
+            <option value="140">140 мм</option>
+            <option value="160">160 мм</option>
         </select>
     </div>
 
@@ -76,18 +151,16 @@
     </div>
 
     <div class="result-box">
-        <div>Загальна вага замовлення:</div>
+        <div class="result-label">Загальна вага замовлення:</div>
         <div class="result-val"><span id="totalWeight">0</span> кг</div>
     </div>
 </div>
 
 <script>
-    // База ваги (в кг за 1 штуку)
-    // Примітки: болти рахуються приблизно за формулою (вага тіла + вага головки)
     const data = {
         nut: { 8: 0.0052, 10: 0.0116, 12: 0.0173, 14: 0.025, 16: 0.033, 18: 0.049, 20: 0.064 },
         washer: { 8: 0.0021, 10: 0.0041, 12: 0.0063, 14: 0.0086, 16: 0.0113, 18: 0.0147, 20: 0.0172 },
-        boltBase: { // Вага 1 мм стрижня + вага головки
+        boltBase: {
             8:  { head: 0.005, mm: 0.00039 },
             10: { head: 0.010, mm: 0.00062 },
             12: { head: 0.015, mm: 0.00089 },
@@ -101,13 +174,7 @@
     function toggleInputs() {
         const type = document.getElementById('mainType').value;
         const lengthGroup = document.getElementById('lengthGroup');
-        
-        // Показуємо довжину тільки для болтів
-        if (type === 'bolt') {
-            lengthGroup.classList.remove('hidden');
-        } else {
-            lengthGroup.classList.add('hidden');
-        }
+        lengthGroup.classList.toggle('hidden', type !== 'bolt');
         calculate();
     }
 
@@ -129,7 +196,6 @@
         document.getElementById('totalWeight').innerText = total.toFixed(3);
     }
 
-    // Ініціалізація
     toggleInputs();
 </script>
 
