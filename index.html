@@ -160,35 +160,12 @@
 
     <div class="form-group">
         <label>Діаметр (М)</label>
-        <select id="diameter" onchange="calculate()">
-            <option value="8">М8</option>
-            <option value="10">М10</option>
-            <option value="12">М12</option>
-            <option value="14">М14</option>
-            <option value="16">М16</option>
-            <option value="18">М18</option>
-            <option value="20">М20</option>
-        </select>
+        <select id="diameter" onchange="calculate()"></select>
     </div>
 
     <div class="form-group" id="lengthGroup">
         <label>Довжина (мм)</label>
-       <select id="length" onchange="calculate()">
-    <option value="60">60 мм</option>
-    <option value="80">80 мм</option>
-    <option value="90">90 мм</option>
-    <option value="100">100 мм</option>
-    <option value="110">110 мм</option>
-    <option value="120">120 мм</option>
-    <option value="130">130 мм</option>
-    <option value="140">140 мм</option>
-    <option value="150">150 мм</option>
-    <option value="160">160 мм</option>
-    <option value="170">170 мм</option>
-    <option value="180">180 мм</option>
-    <option value="190">190 мм</option>
-    <option value="200">200 мм</option>
-</select>
+        <select id="length" onchange="calculate()"></select>
     </div>
 
     <div class="form-group">
@@ -203,23 +180,71 @@
 </div>
 
 <script>
+    // Ваги одиниці виробу, кг.
+    // nut  — гайка шестигранна DIN 934 / ГОСТ 5915
+    // washer — шайба плоска DIN 125 / ГОСТ 11371
+    // boltBase — головка болта DIN 931/933 (head, кг) + вага 1 мм стрижня (mm, кг/мм), сталь 7.85 г/см³
     const data = {
-        nut: { 8: 0.0052, 10: 0.0116, 12: 0.0173, 14: 0.025, 16: 0.033, 18: 0.049, 20: 0.064 },
-        washer: { 8: 0.0021, 10: 0.0041, 12: 0.0063, 14: 0.0086, 16: 0.0113, 18: 0.0147, 20: 0.0172 },
+        nut: {
+            6: 0.0027, 8: 0.0052, 10: 0.0116, 12: 0.0173, 14: 0.025,
+            16: 0.033, 18: 0.049, 20: 0.064, 22: 0.084, 24: 0.107,
+            27: 0.151, 30: 0.205, 36: 0.353
+        },
+        washer: {
+            6: 0.0012, 8: 0.0021, 10: 0.0041, 12: 0.0063, 14: 0.0086,
+            16: 0.0113, 18: 0.0147, 20: 0.0172, 22: 0.0233, 24: 0.0288,
+            27: 0.0400, 30: 0.0518, 36: 0.0820
+        },
         boltBase: {
-            8:  { head: 0.005, mm: 0.00039 },
-            10: { head: 0.010, mm: 0.00062 },
-            12: { head: 0.015, mm: 0.00089 },
-            14: { head: 0.022, mm: 0.00121 },
-            16: { head: 0.030, mm: 0.00158 },
-            18: { head: 0.042, mm: 0.00200 },
-            20: { head: 0.055, mm: 0.00247 }
+            6:  { head: 0.0025, mm: 0.00022 },
+            8:  { head: 0.005,  mm: 0.00039 },
+            10: { head: 0.010,  mm: 0.00062 },
+            12: { head: 0.015,  mm: 0.00089 },
+            14: { head: 0.022,  mm: 0.00121 },
+            16: { head: 0.030,  mm: 0.00158 },
+            18: { head: 0.042,  mm: 0.00200 },
+            20: { head: 0.055,  mm: 0.00247 },
+            22: { head: 0.071,  mm: 0.00299 },
+            24: { head: 0.090,  mm: 0.00356 },
+            27: { head: 0.122,  mm: 0.00450 },
+            30: { head: 0.165,  mm: 0.00555 },
+            36: { head: 0.270,  mm: 0.00799 }
         }
     };
 
+    // Повна сітка з каталогу
+    const diametersAll = [6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 27, 30, 36];
+    const boltLengths  = [30, 40, 50, 55, 60, 65, 70, 75, 80, 90, 100, 110, 120, 130, 140, 150, 160, 180, 200];
+
+    function fillSelect(el, values, suffix, selected) {
+        el.innerHTML = '';
+        values.forEach(v => {
+            const o = document.createElement('option');
+            o.value = v;
+            o.textContent = suffix === 'М' ? ('М' + v) : (v + ' мм');
+            if (v == selected) o.selected = true;
+            el.appendChild(o);
+        });
+    }
+
     function toggleInputs() {
         const type = document.getElementById('mainType').value;
+        const diamSel = document.getElementById('diameter');
+        const prevDiam = diamSel.value || 8;
+
+        // Болти в каталозі від M8, гайки/шайби від M6
+        const diams = (type === 'bolt')
+            ? diametersAll.filter(d => d >= 8)
+            : diametersAll;
+        const keepDiam = diams.includes(parseInt(prevDiam)) ? prevDiam : diams[0];
+        fillSelect(diamSel, diams, 'М', keepDiam);
+
         document.getElementById('lengthGroup').classList.toggle('hidden', type !== 'bolt');
+        if (type === 'bolt') {
+            const lenSel = document.getElementById('length');
+            const prevLen = lenSel.value || 60;
+            fillSelect(lenSel, boltLengths, 'мм', boltLengths.includes(parseInt(prevLen)) ? prevLen : 60);
+        }
         calculate();
     }
 
@@ -232,9 +257,9 @@
         if (type === 'bolt') {
             const L = document.getElementById('length').value;
             const params = data.boltBase[d];
-            unitWeight = params.head + (params.mm * L);
+            if (params) unitWeight = params.head + (params.mm * L);
         } else {
-            unitWeight = data[type][d];
+            unitWeight = data[type][d] || 0;
         }
 
         document.getElementById('totalWeight').innerText = (unitWeight * qty).toFixed(3);
@@ -242,20 +267,22 @@
 
     toggleInputs();
 </script>
-    <script>
+
+<script>
+  // Безпечна авто-висота: міряємо ТІЛЬКИ картку, шлемо лише при реальній зміні.
+  // Без ResizeObserver — щоб не виникав нескінченний цикл росту iframe.
   var lastHeight = 0;
   function sendHeight() {
-    // міряємо реальний вміст, а не розтягнутий body
-    var wrap = document.querySelector(".container, .card, main") || document.body;
-    var h = Math.ceil(wrap.getBoundingClientRect().height) + 40;
-    if (Math.abs(h - lastHeight) > 5) {   // шлемо тільки при відчутній зміні
+    var card = document.querySelector('.container') || document.body;
+    var h = Math.ceil(card.getBoundingClientRect().height) + 60;
+    if (Math.abs(h - lastHeight) > 5) {
       lastHeight = h;
       parent.postMessage({ calcHeight: h, calcId: "metiz" }, "*");
     }
   }
   window.addEventListener("load", sendHeight);
-  document.addEventListener("input", function(){ setTimeout(sendHeight, 50); });
-  document.addEventListener("change", function(){ setTimeout(sendHeight, 50); });
+  document.addEventListener("input",  function(){ setTimeout(sendHeight, 60); });
+  document.addEventListener("change", function(){ setTimeout(sendHeight, 60); });
 </script>
 </body>
 </html>
