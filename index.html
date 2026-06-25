@@ -243,15 +243,17 @@
     toggleInputs();
 </script>
     <script>
+  var lastHeight = 0;
   function sendHeight() {
-    var h = document.documentElement.scrollHeight;
-    parent.postMessage({ calcHeight: h, calcId: "metiz" }, "*");
+    // міряємо реальний вміст, а не розтягнутий body
+    var wrap = document.querySelector(".container, .card, main") || document.body;
+    var h = Math.ceil(wrap.getBoundingClientRect().height) + 40;
+    if (Math.abs(h - lastHeight) > 5) {   // шлемо тільки при відчутній зміні
+      lastHeight = h;
+      parent.postMessage({ calcHeight: h, calcId: "metiz" }, "*");
+    }
   }
   window.addEventListener("load", sendHeight);
-  window.addEventListener("resize", sendHeight);
-  // реагуємо на зміну вмісту (коли користувач міняє тип/діаметр/кількість)
-  new ResizeObserver(sendHeight).observe(document.body);
-  // на випадок асинхронного рендеру результату
   document.addEventListener("input", function(){ setTimeout(sendHeight, 50); });
   document.addEventListener("change", function(){ setTimeout(sendHeight, 50); });
 </script>
