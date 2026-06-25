@@ -242,5 +242,18 @@
 
     toggleInputs();
 </script>
+    <script>
+  function sendHeight() {
+    var h = document.documentElement.scrollHeight;
+    parent.postMessage({ calcHeight: h, calcId: "metiz" }, "*");
+  }
+  window.addEventListener("load", sendHeight);
+  window.addEventListener("resize", sendHeight);
+  // реагуємо на зміну вмісту (коли користувач міняє тип/діаметр/кількість)
+  new ResizeObserver(sendHeight).observe(document.body);
+  // на випадок асинхронного рендеру результату
+  document.addEventListener("input", function(){ setTimeout(sendHeight, 50); });
+  document.addEventListener("change", function(){ setTimeout(sendHeight, 50); });
+</script>
 </body>
 </html>
